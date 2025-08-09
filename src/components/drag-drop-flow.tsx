@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from "react";
+import React, { useRef, useCallback, useEffect, useState } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -16,7 +16,6 @@ import "@xyflow/react/dist/style.css";
 
 import Sidebar from "./sidebar";
 import { DnDProvider, useDnD } from "./dnd-context";
-import { useSaveChanges } from "./provider/save-context-provider";
 const CustomNode = () => (
   <div style={{ padding: 10, border: "1px solid #777", borderRadius: "5px" }}>
     <Handle type="target" position={Position.Left} />
@@ -47,43 +46,26 @@ const DnDFlow = () => {
   const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useDnD();
-  const { saveState } = useSaveChanges();
 
-  useEffect(() => {
-    // if (saveState) {
-    // }
+  function checkAllConencted(): any[] | undefined {
     let collectAllDisconnectedNodes: any[] = [];
-    function checkAllConencted() {
-      for (const node of nodes) {
-        var isConencted = false;
-        for (const edge of edges) {
-          // console.log("node", node);
-          // console.log("edge", edge);
-          if (
-            edge?.source?.includes(node.id)
-            // &&
-            // !edge?.target?.includes(node.id)
-          ) {
-            isConencted = true;
-            break;
-            // return;
-          }
+    for (const node of nodes) {
+      var isConencted = false;
+      for (const edge of edges) {
+        if (edge?.source?.includes(node.id)) {
+          isConencted = true;
+          break;
         }
-        if (!isConencted) {
-          console.log("node.id", node.id);
-          collectAllDisconnectedNodes.push(node);
-          if (collectAllDisconnectedNodes.length > 1) {
-            return collectAllDisconnectedNodes;
-          }
-        }
-        //  console.log("Target", Target);
       }
-      // console.log("disconnectedTarget", disconnectedTarget);
-      console.log("collectAllDisconnectedNodes", collectAllDisconnectedNodes);
+      if (!isConencted) {
+        collectAllDisconnectedNodes.push(node);
+
+        if (collectAllDisconnectedNodes.length > 1) {
+          return collectAllDisconnectedNodes;
+        }
+      }
     }
-    console.log("checkAllConencted", checkAllConencted());
-    // console.log("check=", check);
-  }, [nodes, edges, saveState]);
+  }
 
   console.log("nodes", nodes);
   console.log("edges", edges);
@@ -127,43 +109,48 @@ const DnDFlow = () => {
         y: event.clientY,
       });
       //   console.log(type);
+      const nodeId = getId();
       const newNode = {
-        id: getId(),
+        id: nodeId,
         type,
         position,
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         connected: false,
-        data: { label: `${type} node` },
+        // data: { label: `${type} node` },
+        data: { label: `${nodeId} node` },
       };
       // console.log("newNode", newNode);
       setNodes((nds) => nds.concat(newNode as unknown as any));
     },
     [screenToFlowPosition, type]
   );
-  // console.log("saveState", saveState);
+  // console.log("isError", saveState);
 
   return (
-    <div className="dndflow">
-      <div className="reactflow-wrapper" ref={reactFlowWrapper}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onDrop={onDrop}
-          nodeTypes={nodeTypes}
-          //   onDragStart={onDragStart}
-          onDragOver={onDragOver}
-          fitView
-        >
-          <Controls />
-          <Background />
-        </ReactFlow>
+    <>
+      <Header collectAllDisconnectedNodes={checkAllConencted} />
+      <div className="dndflow">
+        <div className="reactflow-wrapper" ref={reactFlowWrapper}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onDrop={onDrop}
+            nodeTypes={nodeTypes}
+            //   onDragStart={onDragStart}
+            onDragOver={onDragOver}
+            fitView
+          >
+            <Controls />
+            <Background />
+          </ReactFlow>
+        </div>
+        <Sidebar />
       </div>
-      <Sidebar />
-    </div>
+    </>
   );
 };
 

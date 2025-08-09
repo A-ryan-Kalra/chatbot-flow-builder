@@ -1,8 +1,7 @@
 import { ReactFlowProvider } from "@xyflow/react";
 import { DnDProvider } from "./dnd-context";
-import Header from "./header";
+
 import DnDFlow from "./drag-drop-flow";
-import SaveContextProvider from "./provider/save-context-provider";
 
 function ReactFlowProviderEl() {
   return (
@@ -17,10 +16,7 @@ function ReactFlowProviderEl() {
     >
       <ReactFlowProvider>
         <DnDProvider>
-          <SaveContextProvider>
-            <Header />
-            <DnDFlow />
-          </SaveContextProvider>
+          <DnDFlow />
         </DnDProvider>
       </ReactFlowProvider>
     </div>
