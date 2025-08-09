@@ -7,20 +7,53 @@ import {
   MiniMap,
   Background,
   BackgroundVariant,
+  Handle,
+  Position,
+  MarkerType,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
+
+const CustomNode = () => (
+  <div style={{ padding: 10, border: "1px solid #777", borderRadius: "5px" }}>
+    <Handle type="target" position={Position.Left} />
+    <div>Node content</div>
+    <Handle type="source" position={Position.Right} />
+  </div>
+);
+const nodeTypes = {
+  custom: CustomNode,
+};
 
 const initialNodes = [
   {
     id: "n1",
+    type: "custom",
     position: { x: 0, y: 0 },
     data: { label: "Node 1" },
   },
-  { id: "n2", position: { x: 0, y: 100 }, data: { label: "Node 2" } },
-  { id: "n3", position: { x: 0, y: 100 }, data: { label: "Node 3" } },
+  {
+    id: "n2",
+    type: "custom",
+    position: { x: 0, y: 100 },
+    data: { label: "Node 2" },
+  },
+  {
+    id: "n3",
+    type: "custom",
+    position: { x: 0, y: 100 },
+    data: { label: "Node 3" },
+  },
 ];
 const initialEdges = [
-  { id: "n1-n2", source: "n1", target: "n2", animated: true },
+  {
+    id: "e1-n2",
+    source: "n1",
+    target: "n2",
+    animated: true,
+    markerEnd: {
+      type: MarkerType.ArrowClosed,
+    },
+  },
 ];
 
 export default function App() {
@@ -60,6 +93,7 @@ export default function App() {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <ReactFlow
+        nodeTypes={nodeTypes}
         nodes={nodes}
         edges={edges}
         // panOnScroll

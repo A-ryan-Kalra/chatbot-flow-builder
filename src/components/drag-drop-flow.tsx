@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from "react";
+import React, { useRef, useCallback, useEffect } from "react";
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -11,11 +11,12 @@ import {
   Handle,
   Position,
 } from "@xyflow/react";
-
+import Header from "./header";
 import "@xyflow/react/dist/style.css";
 
 import Sidebar from "./sidebar";
 import { DnDProvider, useDnD } from "./dnd-context";
+import { useSaveChanges } from "./provider/save-context-provider";
 const CustomNode = () => (
   <div style={{ padding: 10, border: "1px solid #777", borderRadius: "5px" }}>
     <Handle type="target" position={Position.Left} />
@@ -42,15 +43,54 @@ const getId = () => `dndnode_${id++}`;
 
 const DnDFlow = () => {
   const reactFlowWrapper = useRef(null);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
   const { screenToFlowPosition } = useReactFlow();
   const [type, setType] = useDnD();
-  console.log(edges);
+  const { saveState } = useSaveChanges();
+
+  useEffect(() => {
+    // if (saveState) {
+    // }
+    let collectAllDisconnectedNodes: any[] = [];
+    function checkAllConencted() {
+      for (const node of nodes) {
+        var isConencted = false;
+        for (const edge of edges) {
+          // console.log("node", node);
+          // console.log("edge", edge);
+          if (
+            edge?.source?.includes(node.id)
+            // &&
+            // !edge?.target?.includes(node.id)
+          ) {
+            isConencted = true;
+            break;
+            // return;
+          }
+        }
+        if (!isConencted) {
+          console.log("node.id", node.id);
+          collectAllDisconnectedNodes.push(node);
+          if (collectAllDisconnectedNodes.length > 1) {
+            return collectAllDisconnectedNodes;
+          }
+        }
+        //  console.log("Target", Target);
+      }
+      // console.log("disconnectedTarget", disconnectedTarget);
+      console.log("collectAllDisconnectedNodes", collectAllDisconnectedNodes);
+    }
+    console.log("checkAllConencted", checkAllConencted());
+    // console.log("check=", check);
+  }, [nodes, edges, saveState]);
+
+  console.log("nodes", nodes);
+  console.log("edges", edges);
   const onConnect = useCallback(
     (params: any) =>
       setEdges((eds) => {
-        // console.log("eds", eds);
+        console.log("eds", eds);
         // console.log("params", params);
         if (eds.length > 0) {
           for (const edge of eds) {
@@ -60,8 +100,9 @@ const DnDFlow = () => {
             }
           }
         }
-        console.log(params);
 
+        console.log(params);
+        params.connected = true;
         return addEdge(params, eds);
       }),
     []
@@ -92,6 +133,7 @@ const DnDFlow = () => {
         position,
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
+        connected: false,
         data: { label: `${type} node` },
       };
       // console.log("newNode", newNode);
@@ -99,17 +141,10 @@ const DnDFlow = () => {
     },
     [screenToFlowPosition, type]
   );
+  // console.log("saveState", saveState);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        width: "100vw",
-        // overflow: "hidden",
-      }}
-      className="dndflow"
-    >
+    <div className="dndflow">
       <div className="reactflow-wrapper" ref={reactFlowWrapper}>
         <ReactFlow
           nodes={nodes}
@@ -132,10 +167,4 @@ const DnDFlow = () => {
   );
 };
 
-export default () => (
-  <ReactFlowProvider>
-    <DnDProvider>
-      <DnDFlow />
-    </DnDProvider>
-  </ReactFlowProvider>
-);
+export default DnDFlow;

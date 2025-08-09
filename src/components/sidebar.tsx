@@ -1,5 +1,5 @@
-import React from "react";
 import { useDnD } from "./dnd-context";
+import { MessageSquareTextIcon } from "lucide-react";
 
 export default () => {
   const [_, setType] = useDnD();
@@ -10,30 +10,13 @@ export default () => {
   };
 
   return (
-    <aside>
-      <div className="description">
-        You can drag these nodes to the pane on the right.
-      </div>
+    <aside className="flex flex-wrap border-[1px] border-slate-400">
       <div
-        className="dndnode input"
-        onDragStart={(event) => onDragStart(event, "input")}
-        draggable
-      >
-        Input Node
-      </div>
-      <div
-        className="dndnode"
+        className="border-[1.5px] basis-1/2 items-center justify-center w-fit h-fit border-blue-600 bg-white cursor-pointer rounded-sm p-2 text-sm"
         onDragStart={(event) => onDragStart(event, "default")}
         draggable
       >
-        Default Node
-      </div>
-      <div
-        className="dndnode output"
-        onDragStart={(event) => onDragStart(event, "output")}
-        draggable
-      >
-        Output Node
+        <MessageSquareTextIcon className="mx-auto text-blue-500" />
       </div>
     </aside>
   );
