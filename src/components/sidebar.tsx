@@ -1,6 +1,6 @@
 import type { Node } from "@xyflow/react";
 import { useDnD } from "./dnd-context";
-import { MessageSquareTextIcon } from "lucide-react";
+import { ChevronLeft, MessageSquareTextIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 interface SideProps {
@@ -10,9 +10,15 @@ interface SideProps {
     isSelected: boolean;
     node: Node | null;
   };
+  setSelectedNode: (value: boolean) => void;
 }
 
-export default ({ selectedNode, setValue, value }: SideProps) => {
+export default ({
+  selectedNode,
+  setSelectedNode,
+  setValue,
+  value,
+}: SideProps) => {
   const [_, setType] = useDnD();
 
   const onDragStart = (event: any, nodeType: any) => {
@@ -26,7 +32,15 @@ export default ({ selectedNode, setValue, value }: SideProps) => {
         <div
           className={`w-full   duration-300 transition border-[1.5px]  items-center justify-center  h-fit border-slate-400 bg-white cursor-pointer flex flex-col`}
         >
-          <h1 className="text-center p-1 border-[1px] w-full ">Message</h1>
+          <div className="border-[1px] p-1 w-full flex relative">
+            <div
+              onClick={() => setSelectedNode(false)}
+              className=" bg-slate-200 hover:bg-slate-300 duration-200 rounded-full absolute left-2"
+            >
+              <ChevronLeft />
+            </div>
+            <h1 className="mx-auto">Message</h1>
+          </div>
           <textarea
             value={value ? value : (selectedNode?.node?.data?.label as string)}
             // defaultValue={selectedNode?.node?.data?.label as string}

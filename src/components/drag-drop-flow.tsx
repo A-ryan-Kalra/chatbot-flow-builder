@@ -168,6 +168,9 @@ const DnDFlow = () => {
         </div>
         <Sidebar
           selectedNode={selectedNode}
+          setSelectedNode={(close: boolean) =>
+            setSelectedNode((prev) => ({ ...prev, isSelected: close }))
+          }
           value={value}
           setValue={setValue}
         />
