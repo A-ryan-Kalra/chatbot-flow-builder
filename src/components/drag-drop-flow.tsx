@@ -10,42 +10,29 @@ import {
   Background,
   Handle,
   Position,
+  type Node,
 } from "@xyflow/react";
 import Header from "./header";
 import "@xyflow/react/dist/style.css";
 
 import Sidebar from "./sidebar";
 import { DnDProvider, useDnD } from "./dnd-context";
-const CustomNode = () => (
-  <div style={{ padding: 10, border: "1px solid #777", borderRadius: "5px" }}>
-    <Handle type="target" position={Position.Left} />
-    <div>Node content</div>
-    <Handle type="source" position={Position.Right} />
-  </div>
-);
-const nodeTypes = {
-  custom: CustomNode,
-};
-const initialNodes = [
-  {
-    id: "1",
-    // type: "custom",
-    sourcePosition: Position.Right,
-    targetPosition: Position.Left,
-    data: { label: "input node" },
-    position: { x: 250, y: 5 },
-  },
-];
 
 let id = 0;
-const getId = () => `dndnode_${id++}`;
+const getId = () => `test message ${++id}`;
 
 const DnDFlow = () => {
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<any>([]);
   const { screenToFlowPosition } = useReactFlow();
-  const [type, setType] = useDnD();
+  const [type] = useDnD();
+  const [value, setValue] = useState<string>("");
+
+  const [selectedNode, setSelectedNode] = useState<{
+    isSelected: boolean;
+    node: Node | null;
+  }>({ isSelected: false, node: null });
 
   function checkAllConencted(): any[] | undefined {
     let collectAllDisconnectedNodes: any[] = [];
@@ -65,14 +52,27 @@ const DnDFlow = () => {
         }
       }
     }
+    if (collectAllDisconnectedNodes.length === 1) {
+      if (selectedNode.node) {
+        setNodes(
+          nodes.map((node) => {
+            if (node.id === selectedNode.node!.id) {
+              return { ...node, data: { ...node.data, label: value } };
+            } else {
+              return node;
+            }
+          })
+        );
+      }
+      // alert(value);
+    }
   }
 
   console.log("nodes", nodes);
-  console.log("edges", edges);
+  // console.log("edges", edges);
   const onConnect = useCallback(
     (params: any) =>
       setEdges((eds) => {
-        console.log("eds", eds);
         // console.log("params", params);
         if (eds.length > 0) {
           for (const edge of eds) {
@@ -83,7 +83,6 @@ const DnDFlow = () => {
           }
         }
 
-        console.log(params);
         params.connected = true;
         return addEdge(params, eds);
       }),
@@ -125,8 +124,23 @@ const DnDFlow = () => {
     },
     [screenToFlowPosition, type]
   );
-  // console.log("isError", saveState);
 
+  useEffect(() => {
+    // let isTriggered=
+    const selected = nodes.find((node) => node?.selected);
+
+    if (selected) {
+      setSelectedNode(() => ({
+        node: selected,
+        isSelected: true,
+      }));
+    } else {
+      setSelectedNode((prev) => ({
+        ...prev,
+        isSelected: false,
+      }));
+    }
+  }, [nodes]);
   return (
     <>
       <Header collectAllDisconnectedNodes={checkAllConencted} />
@@ -139,8 +153,12 @@ const DnDFlow = () => {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onDrop={onDrop}
-            nodeTypes={nodeTypes}
+            // nodeTypes={nodeTypes}
             //   onDragStart={onDragStart}
+            panOnScroll={false}
+            // nodesDraggable={true}
+            selectionOnDrag={false}
+            panOnDrag={true}
             onDragOver={onDragOver}
             fitView
           >
@@ -148,7 +166,11 @@ const DnDFlow = () => {
             <Background />
           </ReactFlow>
         </div>
-        <Sidebar />
+        <Sidebar
+          selectedNode={selectedNode}
+          value={value}
+          setValue={setValue}
+        />
       </div>
     </>
   );
