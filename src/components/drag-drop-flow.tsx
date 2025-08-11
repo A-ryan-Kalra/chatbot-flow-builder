@@ -60,25 +60,25 @@ const DnDFlow = () => {
         }
       }
     }
-  }
 
-  useEffect(() => {
-    //It will simply save the new values to the selected node.
-    if (value) {
-      setNodes(
-        nodes.map((node) => {
-          if (node.id === selectedNode.node!.id) {
-            return {
-              ...node,
-              data: { ...node.data, label: value.trim() ?? node.data.label },
-            };
-          } else {
-            return node;
-          }
-        })
-      );
+    //It will be saved only if it doesn't encounter any issues of empty target handles and there is only one node left with empty taget handles.
+    if (collectAllEmptyTargetHandlers.length === 1) {
+      if (value) {
+        setNodes(
+          nodes.map((node) => {
+            if (node.id === selectedNode.node!.id) {
+              return {
+                ...node,
+                data: { ...node.data, label: value.trim() ?? node.data.label },
+              };
+            } else {
+              return node;
+            }
+          })
+        );
+      }
     }
-  }, [value]);
+  }
 
   //It will trigger once connection is made between two nodes.
   const onConnect = useCallback(
