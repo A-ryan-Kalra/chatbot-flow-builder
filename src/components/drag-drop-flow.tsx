@@ -17,10 +17,14 @@ import "@xyflow/react/dist/style.css";
 
 import Sidebar from "./sidebar";
 import { DnDProvider, useDnD } from "./dnd-context";
+import CustomNode from "./custom-node";
 
 let id = 0;
 const getId = () => `test message ${++id}`;
 
+const nodeTypes = {
+  custom: CustomNode,
+};
 const DnDFlow = () => {
   const reactFlowWrapper = useRef(null);
   const [nodes, setNodes, onNodesChange] = useNodesState<any>([]);
@@ -57,7 +61,10 @@ const DnDFlow = () => {
         setNodes(
           nodes.map((node) => {
             if (node.id === selectedNode.node!.id) {
-              return { ...node, data: { ...node.data, label: value } };
+              return {
+                ...node,
+                data: { ...node.data, label: value.trim() ?? node.data.label },
+              };
             } else {
               return node;
             }
@@ -68,8 +75,6 @@ const DnDFlow = () => {
     }
   }
 
-  console.log("nodes", nodes);
-  // console.log("edges", edges);
   const onConnect = useCallback(
     (params: any) =>
       setEdges((eds) => {
@@ -107,17 +112,18 @@ const DnDFlow = () => {
         x: event.clientX,
         y: event.clientY,
       });
-      //   console.log(type);
+      console.log("type", type);
       const nodeId = getId();
       const newNode = {
         id: nodeId,
-        type,
+        type: "custom",
         position,
         sourcePosition: Position.Right,
         targetPosition: Position.Left,
         connected: false,
-        // data: { label: `${type} node` },
-        data: { label: `${nodeId} node` },
+        data: {
+          label: `${nodeId} node`,
+        },
       };
       // console.log("newNode", newNode);
       setNodes((nds) => nds.concat(newNode as unknown as any));
@@ -141,6 +147,7 @@ const DnDFlow = () => {
       }));
     }
   }, [nodes]);
+
   return (
     <>
       <Header collectAllDisconnectedNodes={checkAllConencted} />
@@ -153,7 +160,7 @@ const DnDFlow = () => {
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onDrop={onDrop}
-            // nodeTypes={nodeTypes}
+            nodeTypes={nodeTypes}
             //   onDragStart={onDragStart}
             panOnScroll={false}
             // nodesDraggable={true}

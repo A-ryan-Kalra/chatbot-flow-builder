@@ -1,7 +1,7 @@
 import type { Node } from "@xyflow/react";
 import { useDnD } from "./dnd-context";
 import { ChevronLeft, MessageSquareTextIcon } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 interface SideProps {
   value: string;
@@ -25,6 +25,11 @@ export default ({
     setType!(nodeType as unknown as any);
     event.dataTransfer.effectAllowed = "move";
   };
+
+  useEffect(() => {
+    if (selectedNode?.node?.data?.label)
+      setValue(selectedNode?.node?.data?.label as string);
+  }, [selectedNode?.node?.data?.label]);
   // console.log("Selected", selectedNode);
   return (
     <div className="flex overflow-hidden w-[300px] flex-wrap border-[1px] border-slate-400">
@@ -42,8 +47,7 @@ export default ({
             <h1 className="mx-auto">Message</h1>
           </div>
           <textarea
-            value={value ? value : (selectedNode?.node?.data?.label as string)}
-            // defaultValue={selectedNode?.node?.data?.label as string}
+            value={value}
             onChange={(e) => setValue(e.target.value)}
             className="border-[1px] p-1 focus-visible:border-[1px] focus-visible:ring-1 focus-visible:ring-purple-400 focus-visible:outline-none"
           ></textarea>
