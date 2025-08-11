@@ -30,6 +30,7 @@ const DnDFlow = () => {
   const { screenToFlowPosition } = useReactFlow();
   const [type] = useDnD();
   const [value, setValue] = useState<string>("");
+  const selectedRef = useRef<boolean>(false);
 
   const [selectedNode, setSelectedNode] = useState<{
     isSelected: boolean;
@@ -60,25 +61,25 @@ const DnDFlow = () => {
         }
       }
     }
-
-    //It will be saved only if it doesn't encounter any issues of empty target handles and there is only one node left with empty taget handles.
-    if (collectAllEmptyTargetHandlers.length === 1) {
-      if (value) {
-        setNodes(
-          nodes.map((node) => {
-            if (node.id === selectedNode.node!.id) {
-              return {
-                ...node,
-                data: { ...node.data, label: value.trim() ?? node.data.label },
-              };
-            } else {
-              return node;
-            }
-          })
-        );
-      }
-    }
   }
+
+  useEffect(() => {
+    //It will save new values to selected node.
+    if (value) {
+      setNodes(
+        nodes.map((node) => {
+          if (node.id === selectedNode.node!.id) {
+            return {
+              ...node,
+              data: { ...node.data, label: value.trim() ?? node.data.label },
+            };
+          } else {
+            return node;
+          }
+        })
+      );
+    }
+  }, [value]);
 
   //It will trigger once connection is made between two nodes.
   const onConnect = useCallback(
@@ -136,21 +137,36 @@ const DnDFlow = () => {
     },
     [screenToFlowPosition, type]
   );
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key) {
+        selectedRef.current = true;
+      }
+    };
+    // SelectedRef will be set true, keeping the nodes to update on each render.
+    window.addEventListener("keydown", handleKeyDown);
 
-  //It will trigger each time once a node is selected.
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   useEffect(() => {
     const selected = nodes.find((node) => node?.selected);
-
-    if (selected) {
-      setSelectedNode(() => ({
-        node: selected,
-        isSelected: true,
-      }));
-    } else {
-      setSelectedNode((prev) => ({
-        ...prev,
-        isSelected: false,
-      }));
+    //selectedRef is used to focus on selected node and prevent re-rendering each time during text editing.
+    // which can otherwise cause memory leaks.
+    if (!selectedRef.current) {
+      if (selected) {
+        setSelectedNode(() => ({
+          node: selected,
+          isSelected: true,
+        }));
+      } else {
+        setSelectedNode((prev) => ({
+          ...prev,
+          isSelected: false,
+        }));
+      }
     }
   }, [nodes]);
 
@@ -162,7 +178,11 @@ const DnDFlow = () => {
           <ReactFlow
             nodes={nodes}
             edges={edges}
-            onNodesChange={onNodesChange}
+            onNodesChange={(e) => {
+              //It will be set false, allowing users to select other nodes,causing the node to b
+              selectedRef.current = false;
+              onNodesChange(e);
+            }}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
             onDrop={onDrop}
