@@ -80,6 +80,7 @@ const DnDFlow = () => {
     }
   }, [value]);
 
+  //It will trigger once connection is made between two nodes.
   const onConnect = useCallback(
     (params: any) =>
       setEdges((eds) => {
@@ -98,11 +99,13 @@ const DnDFlow = () => {
     []
   );
 
+  // It will trigger on dragging nodes.
   const onDragOver = useCallback((event: any) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
   }, []);
 
+  // It will trigger on dropping the nodes from node panel.
   const onDrop = useCallback(
     (event: any) => {
       event.preventDefault();
@@ -134,6 +137,7 @@ const DnDFlow = () => {
     [screenToFlowPosition, type]
   );
 
+  //It will trigger each time once a node is selected.
   useEffect(() => {
     const selected = nodes.find((node) => node?.selected);
 

@@ -21,7 +21,7 @@ function header({ collectAllDisconnectedNodes }: HeaderProps) {
     <header className="flex justify-end p-1 bg-slate-200">
       {errorOnSave && (
         <button className="mx-auto border-[1.5px] border-red-300 bg-red-300 cursor-pointer rounded-md px-4 py-1  text-sm">
-          Cannot Save Changes
+          Cannot Save Flow
         </button>
       )}
       {showState && (
