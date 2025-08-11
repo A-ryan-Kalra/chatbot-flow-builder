@@ -1,14 +1,12 @@
-import React, { useRef, useCallback, useEffect, useState } from "react";
+import { useRef, useCallback, useEffect, useState } from "react";
 import {
   ReactFlow,
-  ReactFlowProvider,
   addEdge,
   useNodesState,
   useEdgesState,
   Controls,
   useReactFlow,
   Background,
-  Handle,
   Position,
   type Node,
 } from "@xyflow/react";
@@ -16,7 +14,7 @@ import Header from "./header";
 import "@xyflow/react/dist/style.css";
 
 import Sidebar from "./sidebar";
-import { DnDProvider, useDnD } from "./dnd-context";
+import { useDnD } from "./dnd-context";
 import CustomNode from "./custom-node";
 
 let id = 0;
@@ -38,47 +36,53 @@ const DnDFlow = () => {
     node: Node | null;
   }>({ isSelected: false, node: null });
 
-  function checkAllConencted(): any[] | undefined {
-    let collectAllDisconnectedNodes: any[] = [];
+  function checkAllEmptyTargets(): any[] | undefined {
+    let collectAllEmptyTargetHandlers: any[] = [];
+
     for (const node of nodes) {
+      /** Iterating over each elements of edges and check if a current edge has source handle referring to the current node and if there are more than one nodes with empty target handles will throw an error. **/
+
       var isConencted = false;
+      /**  isConencted is used to break the edge loop without having to iterate all the elements once it's found otherwise it will be added to collectAllEmptyTargetHandlers. **/
+
       for (const edge of edges) {
         if (edge?.source?.includes(node.id)) {
           isConencted = true;
           break;
         }
       }
-      if (!isConencted) {
-        collectAllDisconnectedNodes.push(node);
 
-        if (collectAllDisconnectedNodes.length > 1) {
-          return collectAllDisconnectedNodes;
+      if (!isConencted) {
+        collectAllEmptyTargetHandlers.push(node);
+        //It will break the loop and throws an error, if more than one Node has empty target handles.
+        if (collectAllEmptyTargetHandlers.length > 1) {
+          return collectAllEmptyTargetHandlers;
         }
       }
     }
-    if (collectAllDisconnectedNodes.length === 1) {
-      if (selectedNode.node) {
-        setNodes(
-          nodes.map((node) => {
-            if (node.id === selectedNode.node!.id) {
-              return {
-                ...node,
-                data: { ...node.data, label: value.trim() ?? node.data.label },
-              };
-            } else {
-              return node;
-            }
-          })
-        );
-      }
-      // alert(value);
-    }
   }
+
+  useEffect(() => {
+    //It will simply save the new values to the selected node.
+    if (value) {
+      setNodes(
+        nodes.map((node) => {
+          if (node.id === selectedNode.node!.id) {
+            return {
+              ...node,
+              data: { ...node.data, label: value.trim() ?? node.data.label },
+            };
+          } else {
+            return node;
+          }
+        })
+      );
+    }
+  }, [value]);
 
   const onConnect = useCallback(
     (params: any) =>
       setEdges((eds) => {
-        // console.log("params", params);
         if (eds.length > 0) {
           for (const edge of eds) {
             if (edge.source === params.source) {
@@ -93,7 +97,7 @@ const DnDFlow = () => {
       }),
     []
   );
-  // console.log(nodes);
+
   const onDragOver = useCallback((event: any) => {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
@@ -102,8 +106,7 @@ const DnDFlow = () => {
   const onDrop = useCallback(
     (event: any) => {
       event.preventDefault();
-      // console.log("type", type);
-      // check if the dropped element is valid
+
       if (!type) {
         return;
       }
@@ -112,7 +115,7 @@ const DnDFlow = () => {
         x: event.clientX,
         y: event.clientY,
       });
-      console.log("type", type);
+
       const nodeId = getId();
       const newNode = {
         id: nodeId,
@@ -125,14 +128,13 @@ const DnDFlow = () => {
           label: `${nodeId} node`,
         },
       };
-      // console.log("newNode", newNode);
+
       setNodes((nds) => nds.concat(newNode as unknown as any));
     },
     [screenToFlowPosition, type]
   );
 
   useEffect(() => {
-    // let isTriggered=
     const selected = nodes.find((node) => node?.selected);
 
     if (selected) {
@@ -150,7 +152,7 @@ const DnDFlow = () => {
 
   return (
     <>
-      <Header collectAllDisconnectedNodes={checkAllConencted} />
+      <Header collectAllDisconnectedNodes={checkAllEmptyTargets} />
       <div className="dndflow">
         <div className="reactflow-wrapper" ref={reactFlowWrapper}>
           <ReactFlow
@@ -161,9 +163,7 @@ const DnDFlow = () => {
             onConnect={onConnect}
             onDrop={onDrop}
             nodeTypes={nodeTypes}
-            //   onDragStart={onDragStart}
             panOnScroll={false}
-            // nodesDraggable={true}
             selectionOnDrag={false}
             panOnDrag={true}
             onDragOver={onDragOver}
