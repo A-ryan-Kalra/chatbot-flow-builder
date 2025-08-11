@@ -1,7 +1,7 @@
 import type { Node } from "@xyflow/react";
 import { useDnD } from "./dnd-context";
 import { ChevronLeft, MessageSquareTextIcon } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect } from "react";
 
 interface SideProps {
   value: string;
